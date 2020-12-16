@@ -76,6 +76,15 @@ class TaskScheduler:
             model.Add(pred.end <= succ.start)
 
 
+    def employee_assignments(self):
+        model = self.model
+        n_tasks, n_employees = self.n_tasks, self.n_employees
+        self.task_of = [None] * n_tasks
+        for n in range(n_tasks):
+            # If the value is -1, it is unassigned
+            self.task_of[n] = model.NewIntVar(-1, n_employees, f'employee for task {n}')
+
+
     def capacity_constraints(self):
         model, tasks = self.model, self.tasks
         demands: [[int]] = self.demands
