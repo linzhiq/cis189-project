@@ -81,7 +81,8 @@ class TaskScheduler:
         model, tasks = self.model, self.tasks
         demands: [[int]] = self.demands
         capacities: [int] = self.capacities
-        n_tasks, n_resources = self.n_tasks, self.n_resources
+        n_tasks, n_resources, n_employees\
+            = self.n_tasks, self.n_resources, self.n_employees
 
         # TODO: Use reification to enforce user specific capacity constraints
         for r in range(n_resources):
