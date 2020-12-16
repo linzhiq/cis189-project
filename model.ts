@@ -17,20 +17,20 @@ interface Person extends Model {
 
   // UI
   name: string;
-  teamId: Model;
+  teamId: Model["_id"];
 }
 
 interface Task extends Model {
   requirement: Job;
 
-  dependsOnIds: Model[];
-  blockIds: Model[];
+  dependsOnIds: Model["_id"][];
+  blockIds: Model["_id"][];
 
   priority: TaskPriority;
 
   // UI
   name: string;
-  teamId: Model;
+  teamId: Model["_id"];
   labels: string[];
 }
 

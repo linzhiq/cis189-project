@@ -15,18 +15,28 @@ const EditPage: React.FC<EditPageProps> = ({ teams: _teams }) => {
       <h2>Teams</h2>
       <TagInput
         leftIcon="user"
-        values={["123"]}
+        values={teams.map((team) => team.name)}
         large
         onAdd={(values) => {
           for (const value of values) {
+            for (const team of teams) {
+              if (team.name === value) {
+                // team already exists
+                return;
+              }
+            }
+            
             setTeams([
               ...teams,
               {
                 name: value,
               },
             ]);
-          }
+          }``
         }}
+        onRemove={(value => {
+          setTeams(teams.filter(team => team.name !== value));
+        })}
       />
     </div>
   );
