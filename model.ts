@@ -1,5 +1,5 @@
 interface Model {
-  _id: string;
+  _id?: string;
 }
 
 type JobFunction = 'DES' | 'ENG' | 'BD';
@@ -34,8 +34,6 @@ interface Task extends Model {
 interface Team extends Model {
   // UI
   name: string;
-  personIds: Model[];
-  taskIds: Model[];
 }
 
 // input.json
