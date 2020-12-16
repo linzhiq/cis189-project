@@ -5,7 +5,7 @@ from ortools.sat.python import cp_model
 _MAX_TIME = 168
 
 class TaskScheduler:
-    
+
     def __init__(self, durations, all_demands, successors, capacities, conflict_pairs):
         self.n_resources, self.n_employees = len(capacities), len(capacities[0])
         self.all_demands = all_demands          # all_demands[t][r] = amount of hours of r required by task t.
@@ -13,7 +13,7 @@ class TaskScheduler:
         self.capacities = capacities            # capacities[r][i] = total amount of resource hours r provided by employee i
         self.conflict_pairs = conflict_pairs    # a list of pairs of tasks that cannot start at the same time
 
-
+    
     def analyze_demands(self):
         all_demands, successors = self.all_demands, self.successors
 
@@ -39,7 +39,7 @@ class TaskScheduler:
 
     def create_interval_variables(self):
         model, n_tasks = self.model, self.n_tasks
-
+        
         # Contains the interval variables for each task
         tasks = []       
         for n in range(n_tasks):
@@ -47,11 +47,11 @@ class TaskScheduler:
             end_time = model.NewIntVar(0, _MAX_TIME, f'{n}: end time')
             duration = demands[n][1]
             task_interval = model.NewIntervalVar(
-            start_time,
+                start_time,
                 duration,
-            end_time,
-            f'task {n}'
-        )
+                end_time,
+                f'task {n}'
+            )
             task_interval.start = start_time
             task_interval.end = end_time
             task_interval.duration = duration
@@ -70,10 +70,10 @@ class TaskScheduler:
         # TODO: Pred and succ both unassigned is fine, pred assigned and succ not is fine
         # TODO: Succ assigned and pred not assigned is not fine
         for n in range(n_tasks):
-        pred = tasks[n]
-        for succ in successors[n]:
-            succ = tasks[succ]
-            model.Add(pred.end <= succ.start)
+            pred = tasks[n]
+            for succ in successors[n]:
+                succ = tasks[succ]
+                model.Add(pred.end <= succ.start)
 
 
     def employee_assignments(self):
@@ -93,11 +93,11 @@ class TaskScheduler:
 
         # TODO: Use reification to enforce user specific capacity constraints
         for r in range(n_resources):
-        model.AddCumulative(
-            tasks,
-            [demands[i][r] for i in range(n_tasks)],
-            capacities[r]
-        )
+            model.AddCumulative(
+                tasks,
+                [demands[i][r] for i in range(n_tasks)],
+                capacities[r]
+            )
 
     def create_conflict_penalty(self):
         model, tasks = self.model, self.tasks
@@ -105,11 +105,11 @@ class TaskScheduler:
 
         conflict_indicators = []
         for i, j in conflict_pairs:
-        pair_conflicted = model.NewBoolVar(f'pair {i}{j} is conflicted')
-        i, j = tasks[i], tasks[j]
-        model.Add(i.start != j.start).OnlyEnforceIf(pair_conflicted.Not())
-        model.Add(i.start == j.start).OnlyEnforceIf(pair_conflicted)
-        conflict_indicators.append(pair_conflicted)
+            pair_conflicted = model.NewBoolVar(f'pair {i}{j} is conflicted')
+            i, j = tasks[i], tasks[j]
+            model.Add(i.start != j.start).OnlyEnforceIf(pair_conflicted.Not())
+            model.Add(i.start == j.start).OnlyEnforceIf(pair_conflicted)
+            conflict_indicators.append(pair_conflicted)
 
         self.penalty = model.NewIntVar(0, len(conflict_pairs), 'penalty')
         model.Add(sum(conflict_indicators) == self.penalty)
@@ -118,7 +118,6 @@ class TaskScheduler:
     def minimize_objectives(self):
         model, tasks = self.model, self.tasks
         durations, penalty = self.durations, self.penalty
-        MAX_TIME = sum(durations)
 
         self.makespan = model.NewIntVar(0, _MAX_TIME, 'makespan')
         model.Add(self.makespan == tasks[-1].end)
