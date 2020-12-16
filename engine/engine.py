@@ -60,6 +60,24 @@ class TaskScheduler:
         self.tasks = tasks
 
 
+    def employee_assignments(self):
+        n_tasks, n_employees = self.n_tasks, self.n_employees
+        model, tasks = self.model, self.tasks
+
+        for n in range(n_tasks):
+            # If the value is -1, it is unassigned
+            employee = model.NewIntVar(-1, n_employees, f'employee for task {n}')
+            tasks[n].employee = employee
+
+            # Reify is_assigned with assignment bool
+            is_assigned = model.NewBoolVar()
+            model.Add(employee < 0).OnlyEnforceIf(is_assigned.Not())
+            model.Add(employee >= 0).OnlyEnforceIf(is_assigned)
+            tasks[n].is_assigned = is_assigned
+
+        self.task_of = task_of
+
+
     def precedence_constraints(self):
         model = self.model
         tasks = self.tasks
