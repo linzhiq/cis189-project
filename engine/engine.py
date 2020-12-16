@@ -66,23 +66,15 @@ class TaskScheduler:
         successors: [[int]] = self.successors
         n_tasks = self.n_tasks
         
-        # TODO: Reify this so that it is only true if pred and succ are assigned
-        # TODO: Pred and succ both unassigned is fine, pred assigned and succ not is fine
-        # TODO: Succ assigned and pred not assigned is not fine
         for n in range(n_tasks):
             pred = tasks[n]
             for succ in successors[n]:
                 succ = tasks[succ]
-                model.Add(pred.end <= succ.start)
-
-
-    def employee_assignments(self):
-        model = self.model
-        n_tasks, n_employees = self.n_tasks, self.n_employees
-        self.task_of = [None] * n_tasks
-        for n in range(n_tasks):
-            # If the value is -1, it is unassigned
-            self.task_of[n] = model.NewIntVar(-1, n_employees, f'employee for task {n}')
+                # If both pred and succ are assigned, pred.end <= succ start
+                model.Add(pred.end <= succ.start)\
+                    .OnlyEnforceIf(pred.is_assigned, succ.is_assigned)
+                # If pred is not assigned succ is not assigned
+                model.Add(succ.is_assigned.Not()).OnlyEnforceIf(pred.is_assigned.Not())
 
 
     def capacity_constraints(self):
