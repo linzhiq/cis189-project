@@ -2,12 +2,15 @@ interface Model {
   _id?: string;
 }
 
-type JobFunction = "DES" | "ENG" | "BD";
+const jobFunctions = ["DES", "ENG", "BD"] as const;
+type JobFunction = typeof jobFunctions[number];
+
 type Job = {
   [J in JobFunction]: number; // can be 0
 };
 
-type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+const taskPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+type TaskPriority = typeof taskPriorities[number];
 
 interface Person extends Model {
   capacity: Job;
