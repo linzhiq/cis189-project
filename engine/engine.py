@@ -1,6 +1,9 @@
 import json
 from ortools.sat.python import cp_model
 
+# Each week contains 168 hours, so we set 168 as the max end an interval can have.
+_MAX_TIME = 168
+
 class TaskScheduler:
     
     def __init__(self, durations, demands, successors, capacities, conflict_pairs):
@@ -23,9 +26,8 @@ class TaskScheduler:
         MAX_TIME = sum(durations)
         
         for n in range(n_tasks):
-        start_time = model.NewIntVar(0, MAX_TIME, f'{n}: start time')
-        end_time = model.NewIntVar(0, MAX_TIME, f'{n}: end time')
-        tasks[n] = model.NewIntervalVar(
+            start_time = model.NewIntVar(0, _MAX_TIME, f'{n}: start time')
+            end_time = model.NewIntVar(0, _MAX_TIME, f'{n}: end time')
             start_time,
             durations[n],
             end_time,
@@ -83,11 +85,11 @@ class TaskScheduler:
         durations, penalty = self.durations, self.penalty
         MAX_TIME = sum(durations)
 
-        self.makespan = model.NewIntVar(0, MAX_TIME, 'makespan')
+        self.makespan = model.NewIntVar(0, _MAX_TIME, 'makespan')
         model.Add(self.makespan == tasks[-1].end)
         makespan = self.makespan
 
-        M = MAX_TIME + 1
+        M = _MAX_TIME + 1
         model.Minimize((M * self.penalty) + self.makespan)
 
 
