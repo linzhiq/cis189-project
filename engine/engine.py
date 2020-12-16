@@ -91,7 +91,17 @@ class TaskScheduler:
                 capacities[r]
             )
 
-    def create_conflict_penalty(self):
+        # Force no overlap on all the tasks for each employee
+        # TODO: Talk to Jediah about this
+        # for e in range(self.n_employees):
+        #     model.AddNoOverlap(
+        #         task
+        #         for task in tasks
+        #         if task.employee == e
+        #     )
+
+
+    def create_capacity_penalty(self):
         model, tasks = self.model, self.tasks
         conflict_pairs: [(int, int)] = self.conflict_pairs
 
