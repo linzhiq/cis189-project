@@ -6,13 +6,11 @@ _MAX_TIME = 168
 
 class TaskScheduler:
     
-    def __init__(self, durations, demands, successors, capacities, conflict_pairs):
-        self.n_tasks = len(durations)
-        self.n_resources = len(capacities)
-        self.durations = durations              # durations[t] = duration of task t
-        self.demands = demands                  # demands[t][r] = amount of resource r required by task t
+    def __init__(self, durations, all_demands, successors, capacities, conflict_pairs):
+        self.n_resources, self.n_employees = len(capacities), len(capacities[0])
+        self.all_demands = all_demands          # all_demands[t][r] = amount of hours of r required by task t.
         self.successors = successors            # successors[t] = a list of tasks that cannot start until t is finished
-        self.capacities = capacities            # capacities[r] = total amount of resource r
+        self.capacities = capacities            # capacities[r][i] = total amount of resource hours r provided by employee i
         self.conflict_pairs = conflict_pairs    # a list of pairs of tasks that cannot start at the same time
 
 
