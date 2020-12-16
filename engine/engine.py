@@ -14,6 +14,29 @@ class TaskScheduler:
         self.conflict_pairs = conflict_pairs    # a list of pairs of tasks that cannot start at the same time
 
 
+    def analyze_demands(self):
+        all_demands, successors = self.all_demands, self.successors
+
+        # Split composite tasks into simple tasks
+        orig_demands, simple_demands = list(), list()
+        for i, demand in enumerate(all_demands):
+            resources = [(i, v) for i, v in enumerate(demand) if v > 0]
+            if len(resources) == 1:
+                orig_demands.append(resources[0])
+            else:
+                orig_demands.append((0, 0))
+                simple_demands.extend(resources)
+                # Add future index of the simple demand as a successor of the orig_demand
+                successors[i].extend(
+                    len(all_demands) + i
+                    for i
+                    in range(len(simple_demands) - len(resources), len(simple_demands))
+                )
+
+        self.demands = orig_demands + simple_demands        
+        self.n_tasks = len(self.demands)
+
+
     def create_interval_variables(self):
         model = self.model
         durations: [int] = self.durations
