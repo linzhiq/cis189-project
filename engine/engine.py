@@ -44,6 +44,9 @@ class TaskScheduler:
         successors: [[int]] = self.successors
         n_tasks = self.n_tasks
         
+        # TODO: Reify this so that it is only true if pred and succ are assigned
+        # TODO: Pred and succ both unassigned is fine, pred assigned and succ not is fine
+        # TODO: Succ assigned and pred not assigned is not fine
         for n in range(n_tasks):
         pred = tasks[n]
         for succ in successors[n]:
@@ -57,6 +60,7 @@ class TaskScheduler:
         capacities: [int] = self.capacities
         n_tasks, n_resources = self.n_tasks, self.n_resources
 
+        # TODO: Use reification to enforce user specific capacity constraints
         for r in range(n_resources):
         model.AddCumulative(
             tasks,
