@@ -2,16 +2,16 @@ interface Model {
   _id?: string;
 }
 
-type JobFunction = 'DES' | 'ENG' | 'BD';
+type JobFunction = "DES" | "ENG" | "BD";
 type Job = {
-  [J in JobFunction]: number // can be 0
-}
+  [J in JobFunction]: number; // can be 0
+};
 
-type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
 interface Person extends Model {
   capacity: Job;
-  
+
   // UI
   name: string;
   teamId: Model;
@@ -19,12 +19,12 @@ interface Person extends Model {
 
 interface Task extends Model {
   requirement: Job;
-  
+
   dependsOnIds: Model[];
   blockIds: Model[];
-  
+
   priority: TaskPriority;
-  
+
   // UI
   name: string;
   teamId: Model;
@@ -42,16 +42,16 @@ interface Input {
     // run for each team
     tasks: Task[];
     people: Person[];
-  }[]
+  }[];
 }
 
 // output.json
 interface Output {
   completed: boolean;
   assignments: {
-    taskId: Model['_id'];
+    taskId: Model["_id"];
     people: {
-      [J in JobFunction]?: Model['_id'];
-    }
+      [J in JobFunction]?: Model["_id"];
+    };
   }[];
 }
