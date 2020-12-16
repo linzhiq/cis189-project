@@ -6,7 +6,7 @@ _MAX_TIME = 168
 
 class TaskScheduler:
 
-    def __init__(self, durations, all_demands, successors, capacities, conflict_pairs):
+    def __init__(self, all_demands, successors, capacities, conflict_pairs):
         self.n_resources, self.n_employees = len(capacities), len(capacities[0])
         self.all_demands = all_demands          # all_demands[t][r] = amount of hours of r required by task t.
         self.successors = successors            # successors[t] = a list of tasks that cannot start until t is finished
