@@ -38,25 +38,26 @@ class TaskScheduler:
 
 
     def create_interval_variables(self):
-        model = self.model
-        durations: [int] = self.durations
-        n_tasks = self.n_tasks
-        self.tasks = [None for _ in range(n_tasks)]
-        tasks = self.tasks
+        model, n_tasks = self.model, self.n_tasks
 
-        MAX_TIME = sum(durations)
-        
+        # Contains the interval variables for each task
+        tasks = []       
         for n in range(n_tasks):
             start_time = model.NewIntVar(0, _MAX_TIME, f'{n}: start time')
             end_time = model.NewIntVar(0, _MAX_TIME, f'{n}: end time')
+            duration = demands[n][1]
+            task_interval = model.NewIntervalVar(
             start_time,
-            durations[n],
+                duration,
             end_time,
             f'task {n}'
         )
-        tasks[n].start = start_time
-        tasks[n].end = end_time
-        tasks[n].duration = durations[n]
+            task_interval.start = start_time
+            task_interval.end = end_time
+            task_interval.duration = duration
+            tasks.append(task_interval)
+
+        self.tasks = tasks
 
 
     def precedence_constraints(self):
