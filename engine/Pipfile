@@ -9,5 +9,8 @@ verify_ssl = true
 ortools = "*"
 nbconvert = "*"
 
+[scripts]
+engine = "python engine.py"
+
 [requires]
-python_version = "3.7"
+python_version = "3"
