@@ -19,27 +19,31 @@ class TaskScheduler:
         all_demands, blocked_by = self.all_demands, self.blocked_by
 
         # Split composite tasks into simple tasks
-        orig_demands, simple_demands = list(), list()
+        orig_demands, simple_demands, new_deps = list(), list(), defaultdict(list)
         for i, demand in enumerate(all_demands):
             resources = [(i, v) for i, v in enumerate(demand) if v > 0]
             if len(resources) == 1:
                 orig_demands.append(resources[0])
             else:
                 orig_demands.append((0, 0))
-                simple_demands.extend(resources)
-                # Add future index of the simple demand as a predecessor of the orig_demand
-                blocked_by[i].extend(
-                    len(all_demands) + i
-                    for i
-                    in range(len(simple_demands) - len(resources), len(simple_demands))
-                )
+                # Mark down some relative indices for blocking preds
+                for resource in resources:
+                    tail = len(simple_demands)
+                    simple_demands.append(resource)
+                    new_deps[i].append(tail)
+                    blocked_by.append([])
+
+        for k in new_deps:
+            for i in new_deps[k]:
+                blocked_by[k].append(len(orig_demands) + i)
 
         self.demands = orig_demands + simple_demands       
+        print(self.demands, self.blocked_by)
         self.n_tasks = len(self.demands)
 
 
     def create_interval_variables(self):
-        model, n_tasks = self.model, self.n_tasks
+        model, demands, n_tasks = self.model, self.demands, self.n_tasks
         
         # Contains the interval variables for each task
         tasks = []       
@@ -190,10 +194,11 @@ class TaskScheduler:
             print(f'employee {e}:')
             for r in range(self.n_resources):
                 print(f'resource {r}: {self.solver.Value(self.employee_loads[e][r])}')
+            print('-------------------------------')
 
         tasks = self.tasks
         demands = self.demands
-        for t in sorted(range(self.n_tasks), key=lambda t: self.solver.Value(tasks[t].start)):
+        for t in range(self.n_tasks):
             is_assigned = self.solver.Value(tasks[t].is_assigned)
             employee = self.solver.Value(tasks[t].employee)
             start = self.solver.Value(tasks[t].start)
