@@ -95,9 +95,9 @@ class TaskScheduler:
                 pred = tasks[pred]
                 # If both pred and succ are assigned, pred.end <= succ start
                 model.Add(pred.end <= succ.start)\
-                    .OnlyEnforceIf(pred.is_assigned, succ.is_assigned)
+                    .OnlyEnforceIf([pred.is_assigned, succ.is_assigned])
                 # If pred is not assigned succ is not assigned
-                model.Add(succ.is_assigned.Not()).OnlyEnforceIf(pred.is_assigned.Not())
+                model.AddImplication(succ.is_assigned, pred.is_assigned)
 
 
     def capacity_constraints(self):
