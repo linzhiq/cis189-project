@@ -8,7 +8,10 @@ type Data = {
 
 export default (req: NextApiRequest, res: NextApiResponse<Data>) => {
   console.log(req.body);
-  fs.writeFileSync(path.join(process.cwd(), "../engine/io/input.json"), req.body);
+  fs.writeFileSync(
+    path.join(process.cwd(), "../engine/io/input.json"),
+    JSON.stringify(req.body)
+  );
 
   res.status(200);
 };
