@@ -43,8 +43,9 @@ class TaskScheduler:
         # Contains the interval variables for each task
         tasks = []       
         for n in range(n_tasks):
-            start_time = model.NewIntVar(0, _MAX_TIME, f'{n}: start time')
-            end_time = model.NewIntVar(0, _MAX_TIME, f'{n}: end time')
+            # If the start time is -1, the time is unassigned
+            start_time = model.NewIntVar(-1, _MAX_TIME, f'{n}: start time')
+            end_time = model.NewIntVar(-1, _MAX_TIME, f'{n}: end time')
             duration = demands[n][1]
             task_interval = model.NewIntervalVar(
                 start_time,
