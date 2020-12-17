@@ -145,13 +145,16 @@ class TaskScheduler:
 
 
 
+    # Maximize the number of assigned tasks + employees
+    def maximize_objectives(self):
         model, tasks = self.model, self.tasks
-        unassigned_tasks = model.NewIntVar(0, self.n_tasks, 'unassigned tasks')
-        model.Add(unassigned_tasks == sum(b.is_assigned % 1 for b in tasks))
-        model.Minimize(unassigned_tasks)
+        assigned_tasks = model.NewIntVar(0, self.n_tasks, 'unassigned tasks')
+        model.Add(assigned_tasks == sum(t.is_assigned for t in tasks))
+        model.Maximize(assigned_tasks)
+        self.assigned_tasks = assigned_tasks
+
 
     def solve_model(self) -> Optional[List[Tuple[int, int]]]:
-        n_tasks = self.n_tasks
         # Create a new model and solver
         self.model = cp_model.CpModel()
         self.solver = cp_model.CpSolver()
@@ -161,7 +164,7 @@ class TaskScheduler:
         self.employee_assignments()
         self.precedence_constraints()
         self.capacity_constraints()
-        self.minimize_objectives()
+        self.maximize_objectives()
 
         # Set a time limit of 25 seconds and 4 logical cores
         self.solver.parameters.max_time_in_seconds = 25.0
