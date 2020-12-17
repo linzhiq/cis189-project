@@ -101,6 +101,24 @@ class TaskScheduler:
             model.Add(task.start >= 0).OnlyEnforceIf(is_assigned)
 
 
+    def priority_constraints(self):
+        model, priorities, tasks = self.model, self.priorities, self.tasks
+        priority_indicators = []
+        for n in range(len(tasks)):
+            priority_val, task = priorities[n], tasks[n]
+            curr_task_priority = model.NewIntVar(0, priority_val, f'Contributed priority of task {n}')
+            # curr_task_priority is the rated priority_val iff the task is assigned
+            model.Add(curr_task_priority == 0).OnlyEnforceIf(task.is_assigned.Not())
+            model.Add(curr_task_priority == priority_val).OnlyEnforceIf(task.is_assigned)
+
+            priority_indicators.append(curr_task_priority)
+            tasks[n].priority = curr_task_priority
+
+        total_priority = model.NewIntVar(0, sum(priorities), f'Current assignment priority value')
+        model.Add(total_priority == sum(priority_indicators))
+        self.total_priority = total_priority
+
+
     def precedence_constraints(self):
         model = self.model
         tasks = self.tasks
@@ -162,13 +180,21 @@ class TaskScheduler:
         self.employee_loads = employee_loads
 
 
+    # TODO: Balance tasks across employees
     # Maximize the number of assigned tasks + employees
     def maximize_objectives(self):
         model, tasks = self.model, self.tasks
+        # Track number of assigned tasks
         assigned_tasks = model.NewIntVar(0, self.n_tasks, 'unassigned tasks')
         model.Add(assigned_tasks == sum(t.is_assigned for t in tasks))
-        model.Maximize(assigned_tasks)
         self.assigned_tasks = assigned_tasks
+
+        # Alias priority utility
+        total_priority = self.total_priority
+        MAX_PRIORITY = sum(self.priorities)
+        P = MAX_PRIORITY + 1
+
+        model.Maximize((assigned_tasks * P) + total_priority)
 
 
     def solve_model(self) -> Optional[List[Tuple[int, int]]]:
@@ -179,6 +205,7 @@ class TaskScheduler:
         self.analyze_demands()
         self.create_interval_variables()
         self.employee_assignments()
+        self.priority_constraints()
         self.precedence_constraints()
         self.capacity_constraints()
         self.maximize_objectives()
@@ -216,7 +243,8 @@ class TaskScheduler:
             is_assigned = self.solver.Value(tasks[t].is_assigned)
             employee = self.solver.Value(tasks[t].employee)
             start = self.solver.Value(tasks[t].start)
-            print(f'task {t} (start={start}) (assigned={is_assigned}) (employee={employee}) (demand={demands[t]})')
+            priority = self.solver.Value(tasks[t].priority)
+            print(f'task {t} (start={start}) (assigned={is_assigned}) (employee={employee}) (demand={demands[t]}) (priority={priority})')
 
 
     def jsonize(self, task_names, person_names):
