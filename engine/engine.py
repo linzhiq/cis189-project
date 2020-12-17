@@ -6,16 +6,15 @@ _MAX_TIME = 168
 
 class TaskScheduler:
 
-    def __init__(self, all_demands, successors, capacities, conflict_pairs):
+    def __init__(self, all_demands, blocked_by, capacities):
         self.n_resources, self.n_employees = len(capacities), len(capacities[0])
         self.all_demands = all_demands          # all_demands[t][r] = amount of hours of r required by task t.
-        self.successors = successors            # successors[t] = a list of tasks that cannot start until t is finished
+        self.blocked_by = blocked_by            # blocked_by[t] = a list of tasks that must be finished before t is started
         self.capacities = capacities            # capacities[r][i] = total amount of resource hours r provided by employee i
-        self.conflict_pairs = conflict_pairs    # a list of pairs of tasks that cannot start at the same time
 
     
     def analyze_demands(self):
-        all_demands, successors = self.all_demands, self.successors
+        all_demands, blocked_by = self.all_demands, self.blocked_by
 
         # Split composite tasks into simple tasks
         orig_demands, simple_demands = list(), list()
@@ -26,8 +25,8 @@ class TaskScheduler:
             else:
                 orig_demands.append((0, 0))
                 simple_demands.extend(resources)
-                # Add future index of the simple demand as a successor of the orig_demand
-                successors[i].extend(
+                # Add future index of the simple demand as a predecessor of the orig_demand
+                blocked_by[i].extend(
                     len(all_demands) + i
                     for i
                     in range(len(simple_demands) - len(resources), len(simple_demands))
@@ -82,13 +81,13 @@ class TaskScheduler:
     def precedence_constraints(self):
         model = self.model
         tasks = self.tasks
-        successors: [[int]] = self.successors
+        blocked_by: [[int]] = self.blocked_by
         n_tasks = self.n_tasks
         
         for n in range(n_tasks):
-            pred = tasks[n]
-            for succ in successors[n]:
-                succ = tasks[succ]
+            succ = tasks[n]
+            for pred in blocked_by[n]:
+                pred = tasks[pred]
                 # If both pred and succ are assigned, pred.end <= succ start
                 model.Add(pred.end <= succ.start)\
                     .OnlyEnforceIf(pred.is_assigned, succ.is_assigned)
