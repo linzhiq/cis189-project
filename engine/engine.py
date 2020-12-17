@@ -5,6 +5,8 @@ from ortools.sat.python import cp_model
 
 # Each week contains 168 hours, so we set 168 as the max end an interval can have.
 _MAX_TIME = 168
+_JOB_FUNCTION = ['DES', 'ENG', 'BD']
+_TASK_PRIORITY = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
 
 class TaskScheduler:
 
@@ -221,7 +223,7 @@ if __name__ == "__main__":
             demand, task_blocked_by = task['requirement'], task['blockedByNames']
             demand = [
                 demand[job] if job in demand else 0
-                for job in JOB_FUNCTION
+                for job in _JOB_FUNCTION
             ]
             task_blocked_by = [
                 name_to_index[name] for name in task_blocked_by
@@ -229,11 +231,11 @@ if __name__ == "__main__":
             all_demands[n] = demand
             blocked_by[n] = task_blocked_by
 
-        capacities = [[0] * len(JOB_FUNCTION) for _ in range(len(people))]
+        capacities = [[0] * len(_JOB_FUNCTION) for _ in range(len(people))]
         for i, person in enumerate(people):
             capacities[i] = [
                 person['capacity'][job] if job in person['capacity'] else 0
-                for job in JOB_FUNCTION
+                for job in _JOB_FUNCTION
             ]
 
     # One resource, one task sanity test
