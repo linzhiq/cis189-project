@@ -137,17 +137,12 @@ class TaskScheduler:
         model.Add(sum(conflict_indicators) == self.penalty)
 
 
+    # Minimize the number of unassigned tasks
     def minimize_objectives(self):
         model, tasks = self.model, self.tasks
-        durations, penalty = self.durations, self.penalty
-
-        self.makespan = model.NewIntVar(0, _MAX_TIME, 'makespan')
-        model.Add(self.makespan == tasks[-1].end)
-        makespan = self.makespan
-
-        M = _MAX_TIME + 1
-        model.Minimize((M * self.penalty) + self.makespan)
-
+        unassigned_tasks = model.NewIntVar(0, self.n_tasks, 'unassigned tasks')
+        model.Add(unassigned_tasks == sum(b.is_assigned % 1 for b in tasks))
+        model.Minimize(unassigned_tasks)
 
     def solve_model(self) -> Optional[List[Tuple[int, int]]]:
         n_tasks = self.n_tasks
@@ -155,10 +150,11 @@ class TaskScheduler:
         self.model = cp_model.CpModel()
         self.solver = cp_model.CpSolver()
         # Create variables and constraints
+        self.analyze_demands()
         self.create_interval_variables()
+        self.employee_assignments()
         self.precedence_constraints()
         self.capacity_constraints()
-        self.create_conflict_penalty()
         self.minimize_objectives()
 
         # Set a time limit of 25 seconds and 4 logical cores
