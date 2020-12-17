@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^3.36.0",
+    "@blueprintjs/table": "^3.8.18",
     "mongodb": "^3.6.3",
     "next": "10.0.3",
     "react": "^17.0.1",

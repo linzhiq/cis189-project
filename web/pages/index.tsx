@@ -25,6 +25,7 @@ import {
 } from "../model";
 
 import https from "https";
+import { Cell, Column, Table } from "@blueprintjs/table";
 
 const url =
   "mongodb+srv://user:3HFHgEYkNgNIk462@cluster0.c6gib.mongodb.net/db?retryWrites=true&w=majority";
@@ -51,6 +52,8 @@ const EditPage: React.FC<EditPageProps> = ({
     string[] | undefined
   >(undefined);
 
+  const [output, setOutput] = useState<Output>();
+
   const serialize = (): Input => ({
     run: teams.map((team) => ({
       tasks: tasks.filter((task) => task.teamName === team.name),
@@ -59,7 +62,7 @@ const EditPage: React.FC<EditPageProps> = ({
   });
 
   const onOutput = (res: Output) => {
-    console.log(res);
+    setOutput(res);
   };
 
   return (
@@ -429,6 +432,8 @@ const EditPage: React.FC<EditPageProps> = ({
       <Button
         text={"Schedule"}
         onClick={() => {
+          setOutput(undefined);
+
           const data = JSON.stringify(serialize());
 
           const options = {
@@ -445,7 +450,7 @@ const EditPage: React.FC<EditPageProps> = ({
             res.on("data", (data) => chunks.push(data));
             res.on("end", () => {
               let body = Buffer.concat(chunks);
-              
+
               let response: Output = JSON.parse(body.toString());
               onOutput(response);
             });
@@ -459,6 +464,38 @@ const EditPage: React.FC<EditPageProps> = ({
           req.end();
         }}
       />
+
+      {output && (
+        <div style={{ paddingTop: 50, paddingBottom: 100 }}>
+          <h2>Result</h2>
+          {output.map((teamData, index) => (
+            <div>
+              <h3>{teams[index].name}</h3>
+              {teamData.assignments.length === 0 ? (
+                <h4>No assignments</h4>
+              ) : (
+                // @ts-ignore
+                <Table numRows={teamData.assignments.length}>
+                  <Column
+                    name={"Task name"}
+                    cellRenderer={(rowIndex) => (
+                      <Cell>{teamData.assignments[rowIndex].taskName}</Cell>
+                    )}
+                  />
+                  {jobFunctions.map((jobFunction) => (
+                    <Column
+                      name={`${jobFunction} assignee`}
+                      cellRenderer={(rowIndex) => (
+                        <Cell>{teamData.assignments[rowIndex].people[jobFunction]}</Cell>
+                      )}
+                    />
+                  ))}
+                </Table>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

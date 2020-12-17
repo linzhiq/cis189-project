@@ -115,6 +115,17 @@
     classnames "^2.2"
     tslib "~1.13.0"
 
+"@blueprintjs/table@^3.8.18":
+  version "3.8.18"
+  resolved "https://registry.yarnpkg.com/@blueprintjs/table/-/table-3.8.18.tgz#1d85c4b06eea73e4937a9dca4313b77b3407c11f"
+  integrity sha512-ZEAQ5uyDwHy9lDsWXEGWMle0oi5NWnOT1hMmmyP7BK1ulSflX4/PQ1K2mzbBbHK1wAiWpFDUvCX9K39k0wOemA==
+  dependencies:
+    "@blueprintjs/core" "^3.36.0"
+    classnames "^2.2"
+    prop-types "^15.7.2"
+    react-lifecycles-compat "^3.0.4"
+    tslib "~1.13.0"
+
 "@hapi/accept@5.0.1":
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/@hapi/accept/-/accept-5.0.1.tgz#068553e867f0f63225a506ed74e899441af53e10"
@@ -3179,7 +3190,7 @@ promise-inflight@^1.0.1:
   resolved "https://registry.yarnpkg.com/promise-inflight/-/promise-inflight-1.0.1.tgz#98472870bf228132fcbdd868129bad12c3c029e3"
   integrity sha1-mEcocL8igTL8vdhoEputEsPAKeM=
 
-prop-types@15.7.2, prop-types@^15.6.1, prop-types@^15.6.2:
+prop-types@15.7.2, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
