@@ -229,12 +229,13 @@ if __name__ == "__main__":
             all_demands[n] = demand
             blocked_by[n] = task_blocked_by
 
-        capacities = [[0] * len(JOB_FUNCTION) for _ in range(len(people))]
-        for i, person in enumerate(people):
-            capacities[i] = [
-                person.requirement[job] if job in person.requirement else 0
-                for job in JOB_FUNCTION
-            ]
+    # One resource, one task sanity test
+    all_demands = [[0, 168], [1, 0]]
+    blocked_by = [[], [0]]
+    capacities = [[1, 168], [2, 0]]
         
         scheduler = TaskScheduler(all_demands, blocked_by, capacities)
-        scheduler.solve_model()
+    ret = scheduler.solve_model() 
+    print('SAT' if ret else 'UNSAT')
+    if ret:
+        scheduler.pretty_print()
