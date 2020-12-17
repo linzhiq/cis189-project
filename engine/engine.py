@@ -39,7 +39,7 @@ class TaskScheduler:
             for i in new_deps[k]:
                 blocked_by[k].append(len(orig_demands) + i)
 
-        self.demands = orig_demands + simple_demands       
+        self.demands = orig_demands + simple_demands
         self.orig_demands = orig_demands
         self.simple_demands = simple_demands
         self.n_tasks = len(self.demands)
@@ -216,11 +216,60 @@ class TaskScheduler:
             print(f'task {t} (start={start}) (assigned={is_assigned}) (employee={employee}) (demand={demands[t]})')
 
 
+    def jsonize(self, task_names, person_names, path='io/output.json'):
+        with open(path, 'w') as out_file:
+            data = {
+                'completed': False,
+                'assignments': [],
+                'error': 'Something went wrong with reading the SAT result.'
+            }
+            if self.last_result == cp_model.OPTIMAL or self.last_result == cp_model.FEASIBLE:
+                solver, tasks, blocked_by, demands\
+                    = self.solver, self.tasks, self.blocked_by, self.demands
+                assignments = []
+
+                for i, task in enumerate(self.orig_tasks):
+                    if solver.Value(task.is_assigned):
+                        resource, requirement = self.demands[i]
+                        # If the task is a composite sink and all predecessors are assigned
+                        if (resource, requirement) == (0, 0) and all(
+                            solver.Value(tasks[pred].is_assigned)
+                            for pred in blocked_by[i]
+                        ):
+                            people = {}
+                            for pred in blocked_by[i]:
+                                pred, pred_demand = tasks[pred], demands[pred]
+                                pred_res, _ = pred_demand
+                                people[_JOB_FUNCTION[pred_res]] = person_names[solver.Value(task.employee)]
+                            assignment = {
+                                'taskName': task_names[i],
+                                'people': people
+                            }
+                            assignments.append(assignment)
+
+                        # Otherwise, this is a simple task: just assign it.
+                        elif requirement > 0:
+                            people = {}
+                            people[_JOB_FUNCTION[resource]] = person_names[solver.Value(task.employee)]
+                            assignment = {
+                                'taskName': task_names[i],
+                                'people': people
+                            }
+                            assignments.append(assignment)
+                
+                data = {
+                    'completed': True,
+                    'assignments': assignments
+                }
+    
+            else:
+                data['error'] = 'The provided problem is UNSAT or INVALID.'
+            
+            # No matter what, dump out data
+            json.dump(data, out_file)
+
 # Quick and dirty JSON parse and data marshall
 if __name__ == "__main__":
-    JOB_FUNCTION = ['DES', 'ENG', 'BD']
-    TASK_PRIORITY = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
-    
     with open('io/input.json') as json_file:
         data = json.load(json_file)['run'][0]
         tasks, people = data['tasks'], data['people']
@@ -247,13 +296,8 @@ if __name__ == "__main__":
                 for job in _JOB_FUNCTION
             ]
 
-    # One resource, one task sanity test
-    all_demands = [[0, 168], [1, 0]]
-    blocked_by = [[], [0]]
-    capacities = [[1, 168], [2, 0]]
-        
+        # Run the solver on the input data        
         scheduler = TaskScheduler(all_demands, blocked_by, capacities)
-    ret = scheduler.solve_model() 
-    print('SAT' if ret else 'UNSAT')
-    if ret:
+        scheduler.solve_model()
         scheduler.pretty_print()
+        scheduler.jsonize([task["name"] for task in tasks], [person["name"] for person in people])
