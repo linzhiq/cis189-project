@@ -186,4 +186,40 @@ class TaskScheduler:
         print(self.solver.ResponseStats())
 
 if __name__ == "__main__":
-    # Run the stuff/do stuff lololol
+    JOB_FUNCTION = ['DES', 'END', 'BD']
+    TASK_PRIORITY = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
+    
+    with open('io/input.json') as json_file:
+        data = json.load(json_file)['run']
+        tasks, people = data.tasks, data.people
+
+        '''
+        self.all_demands = all_demands          # all_demands[t][r] = amount of hours of r required by task t.
+        self.successors = successors            # successors[t] = a list of tasks that cannot start until t is finished
+        self.capacities = capacities            # capacities[r][i] = total amount of resource hours r provided by employee i
+        '''
+
+        all_demands, blocked_by = [None] * len(tasks), [None] * len(tasks)
+        name_to_index = dict((tasks.name, index) for index, task in enumerate(tasks))
+
+        for n, task in enumerate(tasks):
+            demand, task_blocked_by = task.requirement, task.blockedByIds
+            demand = [
+                requirement[job] if job in requirement else 0
+                for job in JOB_FUNCTION
+            ]
+            task_blocked_by = [
+                name_to_index[name] for name in task_blocked_by
+            ]
+            all_demands[n] = demand
+            blocked_by[n] = task_blocked_by
+
+        capacities = [[0] * len(JOB_FUNCTION) for _ in range(len(people))]
+        for i, person in enumerate(people):
+            capacities[i] = [
+                person.requirement[job] if job in person.requirement else 0
+                for job in JOB_FUNCTION
+            ]
+        
+        scheduler = TaskScheduler(all_demands, blocked_by, capacities)
+        scheduler.solve_model()
