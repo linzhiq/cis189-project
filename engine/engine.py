@@ -180,9 +180,9 @@ class TaskScheduler:
         self.capacity_constraints()
         self.maximize_objectives()
 
-        # Set a time limit of 25 seconds and 4 logical cores
-        self.solver.parameters.max_time_in_seconds = 25.0
-        self.solver.parameters.num_search_workers = 4
+        # Set a time limit of 10 seconds and 1 logical core
+        self.solver.parameters.max_time_in_seconds = 10.0
+        self.solver.parameters.num_search_workers = 1
 
         # Run model and return solution if it exists
         self.last_result = self.solver.Solve(self.model)
