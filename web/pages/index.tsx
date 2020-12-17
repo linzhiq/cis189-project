@@ -16,6 +16,7 @@ import {
   Input,
   Job,
   jobFunctions,
+  Output,
   Person,
   Task,
   taskPriorities,
@@ -56,6 +57,10 @@ const EditPage: React.FC<EditPageProps> = ({
       people: people.filter((person) => person.teamName === team.name),
     })),
   });
+
+  const onOutput = (res: Output) => {
+    console.log(res);
+  };
 
   return (
     <div style={{ paddingLeft: "10vw", width: "80vw" }}>
@@ -435,7 +440,16 @@ const EditPage: React.FC<EditPageProps> = ({
             },
           };
 
-          const req = https.request(options);
+          const req = https.request(options, (res) => {
+            const chunks = [];
+            res.on("data", (data) => chunks.push(data));
+            res.on("end", () => {
+              let body = Buffer.concat(chunks);
+              
+              let response: Output = JSON.parse(body.toString());
+              onOutput(response);
+            });
+          });
 
           req.on("error", (error) => {
             console.error(error);

@@ -19,10 +19,10 @@ export interface Person {
 export interface Task {
   name: string;
   priority: TaskPriority;
-  
+
   requirement: Job;
   blockedByNames: Task["name"][];
-  
+
   // UI
   teamName: Team["name"];
 }
@@ -33,16 +33,16 @@ export interface Team {
 }
 
 // input.json
-export interface Input {
+export type Input = {
   run: {
     // run for each team
     tasks: Task[];
     people: Person[];
   }[];
-}
+};
 
 // output.json
-export interface Output {
+export type Output = {
   completed: boolean;
   assignments: {
     taskName: Task["name"];
@@ -50,4 +50,4 @@ export interface Output {
       [J in JobFunction]?: Person["name"];
     };
   }[];
-}
+}[];
