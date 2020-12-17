@@ -32,7 +32,7 @@ class TaskScheduler:
                     in range(len(simple_demands) - len(resources), len(simple_demands))
                 )
 
-        self.demands = orig_demands + simple_demands        
+        self.demands = orig_demands + simple_demands       
         self.n_tasks = len(self.demands)
 
 
@@ -102,43 +102,28 @@ class TaskScheduler:
 
     def capacity_constraints(self):
         model, tasks = self.model, self.tasks
-        demands: [[int]] = self.demands
-        capacities: [int] = self.capacities
+        demands = self.demands
+        capacities = self.capacities
         n_tasks, n_resources, n_employees\
             = self.n_tasks, self.n_resources, self.n_employees
 
-        # TODO: Use reification to enforce user specific capacity constraints
-        for r in range(n_resources):
-            model.AddCumulative(
-                tasks,
-                [demands[i][r] for i in range(n_tasks)],
-                capacities[r]
-            )
-
-        # Force no overlap on all the tasks for each employee
-        # TODO: Talk to Jediah about this
-        # for e in range(self.n_employees):
-        #     model.AddNoOverlap(
-        #         task
-        #         for task in tasks
-        #         if task.employee == e
-        #     )
-
-
-    def create_capacity_penalty(self):
-        model, tasks = self.model, self.tasks
-        conflict_pairs: [(int, int)] = self.conflict_pairs
-
-        conflict_indicators = []
-        for i, j in conflict_pairs:
-            pair_conflicted = model.NewBoolVar(f'pair {i}{j} is conflicted')
-            i, j = tasks[i], tasks[j]
-            model.Add(i.start != j.start).OnlyEnforceIf(pair_conflicted.Not())
-            model.Add(i.start == j.start).OnlyEnforceIf(pair_conflicted)
-            conflict_indicators.append(pair_conflicted)
-
-        self.penalty = model.NewIntVar(0, len(conflict_pairs), 'penalty')
-        model.Add(sum(conflict_indicators) == self.penalty)
+        # TODO: Make this a soft penalty
+        # Enforce that employees do not overcapacity themselves
+        for e in range(self.n_employees):
+            for r in range(self.n_resources):
+                employee_load = model.NewIntVar(
+                    0,
+                    capacities[r][e],
+                    f'load of emp {e} on resource {r}'
+                )
+                
+                model.Add(employee_load == sum(
+                    tup[1]
+                    for i, tup
+                    in enumerate(demands)
+                    if tup[0] == r and tasks[i].employee == e
+                ))
+                model.Add(employee_load <= capacities[r][e])
 
 
     # Minimize the number of unassigned tasks
