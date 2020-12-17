@@ -40,7 +40,8 @@ class TaskScheduler:
                 blocked_by[k].append(len(orig_demands) + i)
 
         self.demands = orig_demands + simple_demands       
-        print(self.demands, self.blocked_by)
+        self.orig_demands = orig_demands
+        self.simple_demands = simple_demands
         self.n_tasks = len(self.demands)
 
 
@@ -48,8 +49,9 @@ class TaskScheduler:
         model, demands, n_tasks = self.model, self.demands, self.n_tasks
         
         # Contains the interval variables for each task
-        tasks = []       
-        for n in range(n_tasks):
+        orig_tasks, simple_tasks = [], []
+
+        def create_task_interval(n):
             # If the start time is -1, the time is unassigned
             start_time = model.NewIntVar(-1, _MAX_TIME, f'{n}: start time')
             end_time = model.NewIntVar(-1, _MAX_TIME, f'{n}: end time')
@@ -63,9 +65,16 @@ class TaskScheduler:
             task_interval.start = start_time
             task_interval.end = end_time
             task_interval.duration = duration
-            tasks.append(task_interval)
+            return task_interval
 
-        self.tasks = tasks
+        for n in range(len(self.orig_demands)):
+            orig_tasks.append(create_task_interval(n))
+
+        for n in range(len(self.simple_demands)):
+            simple_tasks.append(create_task_interval(len(orig_tasks) + n))
+
+        self.tasks = orig_tasks + simple_tasks
+        self.orig_tasks = orig_tasks
 
 
     def employee_assignments(self):
@@ -148,7 +157,6 @@ class TaskScheduler:
             employee_loads.append(employee_load)
 
         self.employee_loads = employee_loads
-
 
 
     # Maximize the number of assigned tasks + employees
