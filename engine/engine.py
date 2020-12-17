@@ -266,10 +266,10 @@ class TaskScheduler:
             
         return data 
 
+
 # Quick and dirty JSON parse and data marshall
 if __name__ == "__main__":
-    with open('io/input.json') as json_file:
-        data = json.load(json_file)['run'][0]
+    def parse_json(data):
         tasks, people = data['tasks'], data['people']
 
         all_demands, blocked_by = [None] * len(tasks), [None] * len(tasks)
@@ -293,9 +293,26 @@ if __name__ == "__main__":
                 person['capacity'][job] if job in person['capacity'] else 0
                 for job in _JOB_FUNCTION
             ]
+        return all_demands, blocked_by, capacities,\
+            [task["name"] for task in tasks], [person["name"] for person in people]
 
-        # Run the solver on the input data        
+
+    def run_scheduler(all_demands, blocked_by, capacities, names, people):
+        # The scheduler doesn't handle lists of differing lengths/empty lists. Guard for that here.
+        if (not all_demands or not blocked_by or not capacities):
+            return {
+                'completed': True,
+                'assignments': []
+            }
         scheduler = TaskScheduler(all_demands, blocked_by, capacities)
         scheduler.solve_model()
         scheduler.pretty_print()
-        scheduler.jsonize([task["name"] for task in tasks], [person["name"] for person in people])
+        return scheduler.jsonize(names, people)
+
+    with open('io/input.json') as json_file:
+        teams = json.load(json_file)['run']
+        inputs = [parse_json(team) for team in teams]
+        outputs = [run_scheduler(a, b, c, tn, pn) for a, b, c, tn, pn in inputs]
+        with open('io/output.json', 'w') as out_file:
+            json.dump(outputs, out_file)
+        
