@@ -104,30 +104,47 @@ class TaskScheduler:
         model, tasks = self.model, self.tasks
         demands = self.demands
         capacities = self.capacities
-        n_tasks, n_resources, n_employees\
-            = self.n_tasks, self.n_resources, self.n_employees
+        n_resources, n_employees = self.n_resources, self.n_employees
 
-        # TODO: Make this a soft penalty
-        # Enforce that employees do not overcapacity themselves
+        resource_to_tasks = defaultdict(list)
+        for i, tup in enumerate(demands):
+            task = tasks[i]
+            resource, requirement = tup
+            resource_to_tasks[resource].append((task, requirement))
+
+        employee_loads = []
         for e in range(self.n_employees):
+            employee_load = []
             for r in range(self.n_resources):
-                employee_load = model.NewIntVar(
+                employee_tasks = []
+                # Create an "indicator" variable for each task
+                for i, task_tuple in enumerate(resource_to_tasks[r]):
+                    task, requirement = task_tuple
+                    # BoolVar to represent if current task is assigned to current employee
+                    task_assigned = model.NewBoolVar(f'Task {i} is assigned to employee {e}')
+                    employee_task_load = model.NewIntVar(
                     0,
-                    capacities[r][e],
-                    f'load of emp {e} on resource {r}'
+                        requirement,
+                        f'Task {i} contributes {requirement} to employee {e}'
                 )
+                    # task_assigned iff task.employee == e
+                    model.Add(task.employee == e).OnlyEnforceIf(task_assigned)
+                    model.Add(task.employee != e).OnlyEnforceIf(task_assigned.Not())
+                    # employee_task_load is contributed iff task_assigned
+                    model.Add(employee_task_load == requirement).OnlyEnforceIf(task_assigned)
+                    model.Add(employee_task_load == 0).OnlyEnforceIf(task_assigned.Not())
+                    employee_tasks.append(employee_task_load)
                 
-                model.Add(employee_load == sum(
-                    tup[1]
-                    for i, tup
-                    in enumerate(demands)
-                    if tup[0] == r and tasks[i].employee == e
-                ))
-                model.Add(employee_load <= capacities[r][e])
+                employee_resource_load = model.NewIntVar(0, _MAX_TIME, f'Load of resource {r} on emp {e}')
+                model.Add(employee_resource_load == sum(employee_tasks))
+                model.Add(employee_resource_load <= capacities[e][r])
+                employee_load.append(employee_resource_load)
+            employee_loads.append(employee_load)
+
+        self.employee_loads = employee_loads
 
 
-    # Minimize the number of unassigned tasks
-    def minimize_objectives(self):
+
         model, tasks = self.model, self.tasks
         unassigned_tasks = model.NewIntVar(0, self.n_tasks, 'unassigned tasks')
         model.Add(unassigned_tasks == sum(b.is_assigned % 1 for b in tasks))
