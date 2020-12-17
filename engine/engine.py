@@ -1,4 +1,6 @@
 import json
+from collections import defaultdict
+from typing import Optional, List, Tuple
 from ortools.sat.python import cp_model
 
 # Each week contains 168 hours, so we set 168 as the max end an interval can have.
@@ -79,8 +81,6 @@ class TaskScheduler:
             # Iff start_time is -1, employee is not assigned
             model.Add(task.start < 0).OnlyEnforceIf(is_assigned.Not())
             model.Add(task.start >= 0).OnlyEnforceIf(is_assigned)
-
-        self.task_of = task_of
 
 
     def precedence_constraints(self):
