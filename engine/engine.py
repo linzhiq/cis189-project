@@ -228,7 +228,9 @@ class TaskScheduler:
         # Overall runtime stats
         print(self.solver.ResponseStats())
         print('-------------------------------')
-        print(f'UTILITY: {self.solver.Value(self.assigned_tasks)}')
+        print(f'NUM_TASKS: {self.solver.Value(self.assigned_tasks)}')
+        print('-------------------------------')
+        print(f'PRIORITY: {self.solver.Value(self.total_priority)}')
         print('-------------------------------')
 
         for e in range(self.n_employees):
@@ -303,11 +305,13 @@ if __name__ == "__main__":
     def parse_json(data):
         tasks, people = data['tasks'], data['people']
 
-        all_demands, blocked_by = [None] * len(tasks), [None] * len(tasks)
+        all_demands, blocked_by, priorities =\
+            [None] * len(tasks), [None] * len(tasks), [None] * len(tasks)
         name_to_index = dict((task['name'], index) for index, task in enumerate(tasks))
 
         for n, task in enumerate(tasks):
-            demand, task_blocked_by = task['requirement'], task['blockedByNames']
+            demand, task_blocked_by, priority_class\
+                = task['requirement'], task['blockedByNames'], task['priority']
             demand = [
                 demand[job] if job in demand else 0
                 for job in _JOB_FUNCTION
@@ -317,6 +321,7 @@ if __name__ == "__main__":
             ]
             all_demands[n] = demand
             blocked_by[n] = task_blocked_by
+            priorities[n] = _TASK_PRIORITY.index(priority_class) + 1
 
         capacities = [[0] * len(_JOB_FUNCTION) for _ in range(len(people))]
         for i, person in enumerate(people):
@@ -324,18 +329,18 @@ if __name__ == "__main__":
                 person['capacity'][job] if job in person['capacity'] else 0
                 for job in _JOB_FUNCTION
             ]
-        return all_demands, blocked_by, capacities,\
+        return all_demands, blocked_by, capacities, priorities,\
             [task["name"] for task in tasks], [person["name"] for person in people]
     
 
-    def run_scheduler(all_demands, blocked_by, capacities, names, people):
+    def run_scheduler(all_demands, blocked_by, capacities, priorities, names, people):
         # The scheduler doesn't handle lists of differing lengths/empty lists. Guard for that here.
         if (not all_demands or not blocked_by or not capacities):
             return {
                 'completed': True,
                 'assignments': []
             }
-        scheduler = TaskScheduler(all_demands, blocked_by, capacities)
+        scheduler = TaskScheduler(all_demands, blocked_by, capacities, priorities)
         scheduler.solve_model()
         scheduler.pretty_print()
         return scheduler.jsonize(names, people)
@@ -343,7 +348,7 @@ if __name__ == "__main__":
     with open('io/input.json') as json_file:
         teams = json.load(json_file)['run']
         inputs = [parse_json(team) for team in teams]
-        outputs = [run_scheduler(a, b, c, tn, pn) for a, b, c, tn, pn in inputs]
+        outputs = [run_scheduler(a, b, c, p, tn, pn) for a, b, c, p, tn, pn in inputs]
         with open('io/output.json', 'w') as out_file:
             json.dump(outputs, out_file)
         
