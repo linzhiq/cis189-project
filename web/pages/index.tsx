@@ -19,6 +19,7 @@ import {
   Person,
   Task,
   taskPriorities,
+  TaskPriority,
   Team,
 } from "../model";
 
@@ -30,6 +31,7 @@ let newPersonTeam: string | undefined;
 let newPersonCapacity: Job | undefined;
 
 let newTaskName: string | undefined;
+let newTaskPriority: TaskPriority | undefined;
 let newTaskRequirement: Job | undefined;
 
 const EditPage: React.FC<EditPageProps> = ({
@@ -48,6 +50,7 @@ const EditPage: React.FC<EditPageProps> = ({
 
   return (
     <div style={{ paddingLeft: "10vw", width: "80vw" }}>
+      <h1>Scheduler</h1>
       <h3>Teams</h3>
       <TagInput
         leftIcon="people"
@@ -69,7 +72,6 @@ const EditPage: React.FC<EditPageProps> = ({
               },
             ]);
           }
-          ``;
         }}
         onRemove={(value) => {
           setTeams(teams.filter((team) => team.name !== value));
@@ -159,8 +161,6 @@ const EditPage: React.FC<EditPageProps> = ({
               intent={"success"}
               style={{ height: 30, marginTop: 24 }}
               onClick={() => {
-                console.log(newPersonCapacity, newPersonName, newPersonTeam);
-
                 if (!newPersonCapacity || !newPersonName || !newPersonTeam) {
                   Toaster.create({ position: "bottom", maxToasts: 1 }).show({
                     message: "Missing information for person",
@@ -277,7 +277,7 @@ const EditPage: React.FC<EditPageProps> = ({
               <select
                 style={{ width: 168 }}
                 disabled={!!task}
-                onChange={(event) => (newTaskName = event.target.value)}
+                onChange={(event) => (newTaskPriority = event.target.value)}
               >
                 {task ? (
                   <>
@@ -298,7 +298,7 @@ const EditPage: React.FC<EditPageProps> = ({
           <FormGroup label="Blocked by" helperText="tasks">
             <TagInput
               leftIcon="flow-end"
-              values={task? task.blockedByNames : (newTaskBlockedByNames || [])}
+              values={task ? task.blockedByNames : newTaskBlockedByNames || []}
               disabled={!!task || (!task && newTaskTeam === undefined)}
               onAdd={(values) => {
                 const teamTasks = new Set(
@@ -334,8 +334,85 @@ const EditPage: React.FC<EditPageProps> = ({
               }}
             />
           </FormGroup>
+          {task ? (
+            <Button
+              icon="delete"
+              text={"Delete task"}
+              intent={"none"}
+              style={{ height: 30, marginTop: 24 }}
+              onClick={() => {
+                setTasks(
+                  tasks
+                    .filter((_task) => _task.name !== task.name)
+                    .map((_task) => ({
+                      ..._task,
+                      blockedByNames: _task.blockedByNames.filter(
+                        (name) => name != task.name
+                      ),
+                    }))
+                );
+
+                if (newTaskBlockedByNames) {
+                  setNewTaskBlockedByNames(
+                    newTaskBlockedByNames.filter((name) => name != task.name)
+                  );
+                }
+              }}
+            />
+          ) : (
+            <Button
+              icon="add"
+              text={"Add task"}
+              intent={"success"}
+              style={{ height: 30, marginTop: 24 }}
+              onClick={() => {
+                if (
+                  !newTaskName ||
+                  !newTaskTeam ||
+                  !newTaskRequirement ||
+                  !newTaskPriority
+                ) {
+                  Toaster.create({ position: "bottom", maxToasts: 1 }).show({
+                    message: "Missing information for task",
+                    intent: "danger",
+                  });
+
+                  return;
+                }
+
+                for (const task of tasks) {
+                  if (task.name === newTaskName) {
+                    Toaster.create({ position: "bottom", maxToasts: 1 }).show({
+                      message: "Duplicate name for task",
+                      intent: "danger",
+                    });
+
+                    return;
+                  }
+                }
+
+                setTasks([
+                  ...tasks,
+                  {
+                    name: newTaskName,
+                    teamName: newTaskTeam,
+                    blockedByNames: newTaskBlockedByNames || [],
+                    priority: newTaskPriority,
+                    requirement: newTaskRequirement,
+                  },
+                ]);
+
+                newTaskName = undefined;
+                setNewTaskTeam(undefined);
+                newTaskPriority = undefined;
+                setNewTaskBlockedByNames(undefined);
+                newTaskRequirement = undefined;
+              }}
+            />
+          )}
         </div>
       ))}
+      <Button text={"Schedule"} />
     </div>
   );
 };
