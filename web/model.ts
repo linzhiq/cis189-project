@@ -19,7 +19,7 @@ export interface Person {
 export interface Task {
   requirement: Job;
 
-  blockedByIds: Task["name"][];
+  blockedByNames: Task["name"][];
 
   priority: TaskPriority;
 

@@ -30,9 +30,7 @@ let newPersonTeam: string | undefined;
 let newPersonCapacity: Job | undefined;
 
 let newTaskName: string | undefined;
-let newTaskTeam: string | undefined;
 let newTaskRequirement: Job | undefined;
-let newTaskBlockedByName: string | undefined;
 
 const EditPage: React.FC<EditPageProps> = ({
   teams: _teams,
@@ -42,6 +40,11 @@ const EditPage: React.FC<EditPageProps> = ({
   const [teams, setTeams] = useState(_teams);
   const [people, setPeople] = useState(_people);
   const [tasks, setTasks] = useState(_tasks);
+
+  const [newTaskTeam, setNewTaskTeam] = useState(undefined);
+  const [newTaskBlockedByNames, setNewTaskBlockedByNames] = useState<
+    string[] | undefined
+  >(undefined);
 
   return (
     <div style={{ paddingLeft: "10vw", width: "80vw" }}>
@@ -78,7 +81,7 @@ const EditPage: React.FC<EditPageProps> = ({
       {[...people, undefined].map((person) => (
         <div
           style={{ display: "flex" }}
-          key={person?._id}
+          key={person?.name}
           className={styles.flex_container}
         >
           <FormGroup label="Name">
@@ -146,7 +149,7 @@ const EditPage: React.FC<EditPageProps> = ({
               style={{ height: 30, marginTop: 24 }}
               onClick={() => {
                 setPeople(
-                  people.filter((_person) => _person._id !== person._id)
+                  people.filter((_person) => _person.name !== person.name)
                 );
               }}
             />
@@ -165,6 +168,17 @@ const EditPage: React.FC<EditPageProps> = ({
                   });
 
                   return;
+                }
+
+                for (const person of people) {
+                  if (person.name === newPersonName) {
+                    Toaster.create({ position: "bottom", maxToasts: 1 }).show({
+                      message: "Duplicate name for person",
+                      intent: "danger",
+                    });
+
+                    return;
+                  }
                 }
 
                 setPeople([
@@ -188,7 +202,7 @@ const EditPage: React.FC<EditPageProps> = ({
       {[...tasks, undefined].map((task) => (
         <div
           style={{ display: "flex", flexWrap: "wrap" }}
-          key={task?._id}
+          key={task?.name}
           className={styles.flex_container}
         >
           <FormGroup label="Name">
@@ -207,7 +221,13 @@ const EditPage: React.FC<EditPageProps> = ({
               <select
                 style={{ width: 200 }}
                 disabled={!!task}
-                onChange={(event) => (newTaskName = event.target.value)}
+                onChange={(event) => {
+                  setNewTaskTeam(
+                    event.target.value === "undefined"
+                      ? undefined
+                      : event.target.value
+                  );
+                }}
               >
                 {task ? (
                   <>
@@ -215,7 +235,9 @@ const EditPage: React.FC<EditPageProps> = ({
                   </>
                 ) : (
                   <>
-                    <option selected>Select team</option>
+                    <option selected value={"undefined"}>
+                      Select team
+                    </option>
                     {teams.map((team) => {
                       return <option value={team.name}>{team.name}</option>;
                     })}
@@ -235,19 +257,15 @@ const EditPage: React.FC<EditPageProps> = ({
                   defaultValue={0}
                   onValueChange={(value) => {
                     newTaskRequirement = {
-                      BD: newPersonCapacity?.BD || 0,
-                      DES: newPersonCapacity?.DES || 0,
-                      ENG: newPersonCapacity?.ENG || 0,
+                      BD: newTaskRequirement?.BD || 0,
+                      DES: newTaskRequirement?.DES || 0,
+                      ENG: newTaskRequirement?.ENG || 0,
                     };
 
-                    newPersonCapacity = {
-                      ...newPersonCapacity,
+                    newTaskRequirement = {
+                      ...newTaskRequirement,
                       [jobFunction]: value,
                     };
-
-                    newTaskName = undefined;
-                    newTaskTeam = undefined;
-                    newTaskRequirement = undefined;
                   }}
                 />
               </FormGroup>
@@ -280,26 +298,34 @@ const EditPage: React.FC<EditPageProps> = ({
           <FormGroup label="Blocked by" helperText="tasks">
             <TagInput
               leftIcon="flow-end"
-              values={tasks.map((task) => task.name)}
-              disabled={!!task}
-              
+              values={task? task.blockedByNames : (newTaskBlockedByNames || [])}
+              disabled={!!task || (!task && newTaskTeam === undefined)}
               onAdd={(values) => {
+                const teamTasks = new Set(
+                  tasks
+                    .filter(
+                      (_task) =>
+                        _task.teamName === (task ? task.teamName : newTaskTeam)
+                    )
+                    .map((task) => task.name)
+                );
+
                 for (const value of values) {
-                  for (const team of teams) {
-                    if (team.name === value) {
-                      // team already exists
-                      return;
-                    }
+                  if (!teamTasks.has(value)) {
+                    Toaster.create({ position: "bottom", maxToasts: 1 }).show({
+                      message: "Task does not exist for team",
+                      intent: "danger",
+                    });
+
+                    return;
                   }
 
-                  setTeams([
-                    ...teams,
-                    {
-                      name: value,
-                    },
-                  ]);
+                  setNewTaskBlockedByNames(
+                    newTaskBlockedByNames
+                      ? [...newTaskBlockedByNames, value]
+                      : [value]
+                  );
                 }
-                ``;
               }}
               onRemove={(value) => {
                 setTeams(teams.filter((team) => team.name !== value));
@@ -328,7 +354,6 @@ export const getServerSideProps: GetServerSideProps<EditPageProps> = async (
       teams: [{ name: "Team 1" }, { name: "Team 2" }],
       people: [
         {
-          _id: "1",
           name: "Meredith Ford",
           teamName: "Team 1",
           capacity: { DES: 5, ENG: 20, BD: 0 },
@@ -336,13 +361,18 @@ export const getServerSideProps: GetServerSideProps<EditPageProps> = async (
       ],
       tasks: [
         {
-          _id: "1",
           name: "Task 1",
           teamName: "Team 1",
-          blockedByIds: [],
-          dependsOnIds: [],
+          blockedByNames: [],
           priority: "HIGH",
           requirement: { DES: 2, ENG: 5, BD: 0 },
+        },
+        {
+          name: "Task 2",
+          teamName: "Team 1",
+          blockedByNames: ["Task 1"],
+          priority: "MEDIUM",
+          requirement: { DES: 3, ENG: 10, BD: 0 },
         },
       ],
     },
