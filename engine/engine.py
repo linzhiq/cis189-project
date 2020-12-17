@@ -65,15 +65,20 @@ class TaskScheduler:
         model, tasks = self.model, self.tasks
 
         for n in range(n_tasks):
+            task = tasks[n]
             # If the value is -1, it is unassigned
             employee = model.NewIntVar(-1, n_employees, f'employee for task {n}')
-            tasks[n].employee = employee
+            task.employee = employee
 
             # Reify is_assigned with assignment bool
             is_assigned = model.NewBoolVar()
             model.Add(employee < 0).OnlyEnforceIf(is_assigned.Not())
             model.Add(employee >= 0).OnlyEnforceIf(is_assigned)
-            tasks[n].is_assigned = is_assigned
+            task.is_assigned = is_assigned
+
+            # Iff start_time is -1, employee is not assigned
+            model.Add(task.start < 0).OnlyEnforceIf(is_assigned.Not())
+            model.Add(task.start >= 0).OnlyEnforceIf(is_assigned)
 
         self.task_of = task_of
 
