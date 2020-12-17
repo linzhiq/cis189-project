@@ -1,7 +1,3 @@
-interface Model {
-  _id?: string;
-}
-
 export const jobFunctions = ["DES", "ENG", "BD"] as const;
 export type JobFunction = typeof jobFunctions[number];
 
@@ -12,7 +8,7 @@ export type Job = {
 export const taskPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 export type TaskPriority = typeof taskPriorities[number];
 
-export interface Person extends Model {
+export interface Person {
   capacity: Job;
 
   // UI
@@ -20,21 +16,19 @@ export interface Person extends Model {
   teamName: Team["name"];
 }
 
-export interface Task extends Model {
+export interface Task {
   requirement: Job;
 
-  dependsOnIds: Model["_id"][];
-  blockIds: Model["_id"][];
+  blockedByIds: Task["name"][];
 
   priority: TaskPriority;
 
   // UI
   name: string;
   teamName: Team["name"];
-  labels: string[];
 }
 
-export interface Team extends Model {
+export interface Team {
   // UI
   name: string;
 }
@@ -52,9 +46,9 @@ export interface Input {
 export interface Output {
   completed: boolean;
   assignments: {
-    taskId: Model["_id"];
+    taskName: Task["name"];
     people: {
-      [J in JobFunction]?: Model["_id"];
+      [J in JobFunction]?: Person["name"];
     };
   }[];
 }
