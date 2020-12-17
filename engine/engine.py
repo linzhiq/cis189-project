@@ -7,10 +7,10 @@ _MAX_TIME = 168
 class TaskScheduler:
 
     def __init__(self, all_demands, blocked_by, capacities):
-        self.n_resources, self.n_employees = len(capacities), len(capacities[0])
+        self.n_resources, self.n_employees = len(capacities[0]), len(capacities)
         self.all_demands = all_demands          # all_demands[t][r] = amount of hours of r required by task t.
         self.blocked_by = blocked_by            # blocked_by[t] = a list of tasks that must be finished before t is started
-        self.capacities = capacities            # capacities[r][i] = total amount of resource hours r provided by employee i
+        self.capacities = capacities            # capacities[i][r] = total amount of resource hours r provided by employee i
 
     
     def analyze_demands(self):
