@@ -216,8 +216,7 @@ class TaskScheduler:
             print(f'task {t} (start={start}) (assigned={is_assigned}) (employee={employee}) (demand={demands[t]})')
 
 
-    def jsonize(self, task_names, person_names, path='io/output.json'):
-        with open(path, 'w') as out_file:
+    def jsonize(self, task_names, person_names):
             data = {
                 'completed': False,
                 'assignments': [],
@@ -265,8 +264,7 @@ class TaskScheduler:
             else:
                 data['error'] = 'The provided problem is UNSAT or INVALID.'
             
-            # No matter what, dump out data
-            json.dump(data, out_file)
+        return data 
 
 # Quick and dirty JSON parse and data marshall
 if __name__ == "__main__":
