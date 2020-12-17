@@ -180,14 +180,25 @@ class TaskScheduler:
             return None
 
     def pretty_print(self):
+        # Overall runtime stats
+        print(self.solver.ResponseStats())
+        print('-------------------------------')
+        print(f'UTILITY: {self.solver.Value(self.assigned_tasks)}')
+        print('-------------------------------')
+
+        for e in range(self.n_employees):
+            print(f'employee {e}:')
+            for r in range(self.n_resources):
+                print(f'resource {r}: {self.solver.Value(self.employee_loads[e][r])}')
+
         tasks = self.tasks
         demands = self.demands
         for t in sorted(range(self.n_tasks), key=lambda t: self.solver.Value(tasks[t].start)):
-            print(f'[{self.solver.Value(tasks[t].start)}, {self.solver.Value(tasks[t].end)}): task {t} (demands={demands[t]})')
-        print('-------------------------------')
-        print(f'PENALTY: {self.solver.Value(self.penalty)}')
-        print('-------------------------------')
-        print(self.solver.ResponseStats())
+            is_assigned = self.solver.Value(tasks[t].is_assigned)
+            employee = self.solver.Value(tasks[t].employee)
+            start = self.solver.Value(tasks[t].start)
+            print(f'task {t} (start={start}) (assigned={is_assigned}) (employee={employee}) (demand={demands[t]})')
+
 
 if __name__ == "__main__":
     JOB_FUNCTION = ['DES', 'END', 'BD']
