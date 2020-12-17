@@ -13,7 +13,14 @@ import styles from "./index.module.scss";
 
 import { MongoClient } from "mongodb";
 
-import { Job, jobFunctions, Person, Task, Team } from "../model";
+import {
+  Job,
+  jobFunctions,
+  Person,
+  Task,
+  taskPriorities,
+  Team,
+} from "../model";
 
 const url =
   "mongodb+srv://user:3HFHgEYkNgNIk462@cluster0.c6gib.mongodb.net/db?retryWrites=true&w=majority";
@@ -25,6 +32,7 @@ let newPersonCapacity: Job | undefined;
 let newTaskName: string | undefined;
 let newTaskTeam: string | undefined;
 let newTaskRequirement: Job | undefined;
+let newTaskBlockedByName: string | undefined;
 
 const EditPage: React.FC<EditPageProps> = ({
   teams: _teams,
@@ -179,7 +187,7 @@ const EditPage: React.FC<EditPageProps> = ({
       <h3>Tasks</h3>
       {[...tasks, undefined].map((task) => (
         <div
-          style={{ display: "flex" }}
+          style={{ display: "flex", flexWrap: "wrap" }}
           key={task?._id}
           className={styles.flex_container}
         >
@@ -245,6 +253,61 @@ const EditPage: React.FC<EditPageProps> = ({
               </FormGroup>
             );
           })}
+
+          <FormGroup label="Priority">
+            <div className="bp3-select">
+              <select
+                style={{ width: 168 }}
+                disabled={!!task}
+                onChange={(event) => (newTaskName = event.target.value)}
+              >
+                {task ? (
+                  <>
+                    <option selected>{task.priority}</option>
+                  </>
+                ) : (
+                  <>
+                    <option selected>Select priority</option>
+                    {taskPriorities.map((value) => {
+                      return <option value={value}>{value}</option>;
+                    })}
+                  </>
+                )}
+              </select>
+            </div>
+          </FormGroup>
+
+          <FormGroup label="Blocked by" helperText="tasks">
+            <TagInput
+              leftIcon="flow-end"
+              values={tasks.map((task) => task.name)}
+              disabled={!!task}
+              
+              onAdd={(values) => {
+                for (const value of values) {
+                  for (const team of teams) {
+                    if (team.name === value) {
+                      // team already exists
+                      return;
+                    }
+                  }
+
+                  setTeams([
+                    ...teams,
+                    {
+                      name: value,
+                    },
+                  ]);
+                }
+                ``;
+              }}
+              onRemove={(value) => {
+                setTeams(teams.filter((team) => team.name !== value));
+                setPeople(people.filter((person) => person.teamName !== value));
+                setTasks(tasks.filter((task) => task.teamName !== value));
+              }}
+            />
+          </FormGroup>
         </div>
       ))}
     </div>
@@ -271,7 +334,17 @@ export const getServerSideProps: GetServerSideProps<EditPageProps> = async (
           capacity: { DES: 5, ENG: 20, BD: 0 },
         },
       ],
-      tasks: [],
+      tasks: [
+        {
+          _id: "1",
+          name: "Task 1",
+          teamName: "Team 1",
+          blockedByIds: [],
+          dependsOnIds: [],
+          priority: "HIGH",
+          requirement: { DES: 2, ENG: 5, BD: 0 },
+        },
+      ],
     },
   };
 };
