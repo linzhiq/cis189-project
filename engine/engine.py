@@ -180,7 +180,6 @@ class TaskScheduler:
         for t in sorted(range(self.n_tasks), key=lambda t: self.solver.Value(tasks[t].start)):
             print(f'[{self.solver.Value(tasks[t].start)}, {self.solver.Value(tasks[t].end)}): task {t} (demands={demands[t]})')
         print('-------------------------------')
-        print(f'MAKESPAN: {self.solver.Value(self.makespan)}')
         print(f'PENALTY: {self.solver.Value(self.penalty)}')
         print('-------------------------------')
         print(self.solver.ResponseStats())
