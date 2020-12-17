@@ -205,27 +205,22 @@ class TaskScheduler:
             print(f'task {t} (start={start}) (assigned={is_assigned}) (employee={employee}) (demand={demands[t]})')
 
 
+# Quick and dirty JSON parse and data marshall
 if __name__ == "__main__":
-    JOB_FUNCTION = ['DES', 'END', 'BD']
+    JOB_FUNCTION = ['DES', 'ENG', 'BD']
     TASK_PRIORITY = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
     
     with open('io/input.json') as json_file:
-        data = json.load(json_file)['run']
-        tasks, people = data.tasks, data.people
-
-        '''
-        self.all_demands = all_demands          # all_demands[t][r] = amount of hours of r required by task t.
-        self.successors = successors            # successors[t] = a list of tasks that cannot start until t is finished
-        self.capacities = capacities            # capacities[r][i] = total amount of resource hours r provided by employee i
-        '''
+        data = json.load(json_file)['run'][0]
+        tasks, people = data['tasks'], data['people']
 
         all_demands, blocked_by = [None] * len(tasks), [None] * len(tasks)
-        name_to_index = dict((tasks.name, index) for index, task in enumerate(tasks))
+        name_to_index = dict((task['name'], index) for index, task in enumerate(tasks))
 
         for n, task in enumerate(tasks):
-            demand, task_blocked_by = task.requirement, task.blockedByIds
+            demand, task_blocked_by = task['requirement'], task['blockedByNames']
             demand = [
-                requirement[job] if job in requirement else 0
+                demand[job] if job in demand else 0
                 for job in JOB_FUNCTION
             ]
             task_blocked_by = [
@@ -233,6 +228,13 @@ if __name__ == "__main__":
             ]
             all_demands[n] = demand
             blocked_by[n] = task_blocked_by
+
+        capacities = [[0] * len(JOB_FUNCTION) for _ in range(len(people))]
+        for i, person in enumerate(people):
+            capacities[i] = [
+                person['capacity'][job] if job in person['capacity'] else 0
+                for job in JOB_FUNCTION
+            ]
 
     # One resource, one task sanity test
     all_demands = [[0, 168], [1, 0]]
