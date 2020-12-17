@@ -9,6 +9,8 @@ import {
 } from "@blueprintjs/core";
 import { GetServerSideProps } from "next";
 
+import styles from "./index.module.scss";
+
 import { MongoClient } from "mongodb";
 
 import { Job, jobFunctions, Person, Task, Team } from "../model";
@@ -20,12 +22,18 @@ let newPersonName: string | undefined;
 let newPersonTeam: string | undefined;
 let newPersonCapacity: Job | undefined;
 
+let newTaskName: string | undefined;
+let newTaskTeam: string | undefined;
+let newTaskRequirement: Job | undefined;
+
 const EditPage: React.FC<EditPageProps> = ({
   teams: _teams,
   people: _people,
+  tasks: _tasks,
 }) => {
   const [teams, setTeams] = useState(_teams);
   const [people, setPeople] = useState(_people);
+  const [tasks, setTasks] = useState(_tasks);
 
   return (
     <div style={{ paddingLeft: "10vw", width: "80vw" }}>
@@ -54,13 +62,16 @@ const EditPage: React.FC<EditPageProps> = ({
         }}
         onRemove={(value) => {
           setTeams(teams.filter((team) => team.name !== value));
+          setPeople(people.filter((person) => person.teamName !== value));
+          setTasks(tasks.filter((task) => task.teamName !== value));
         }}
       />
       <h3>People</h3>
       {[...people, undefined].map((person) => (
         <div
-          style={{ display: "flex", justifyContent: "space-between" }}
+          style={{ display: "flex" }}
           key={person?._id}
+          className={styles.flex_container}
         >
           <FormGroup label="Name">
             {person ? (
@@ -102,8 +113,9 @@ const EditPage: React.FC<EditPageProps> = ({
                   value={person ? person.capacity[jobFunction] : undefined}
                   style={{ width: 80 }}
                   disabled={!!person}
+                  min={0}
+                  defaultValue={0}
                   onValueChange={(value) => {
-
                     newPersonCapacity = {
                       BD: newPersonCapacity?.BD || 0,
                       DES: newPersonCapacity?.DES || 0,
@@ -137,16 +149,16 @@ const EditPage: React.FC<EditPageProps> = ({
               style={{ height: 30, marginTop: 24 }}
               onClick={() => {
                 console.log(newPersonCapacity, newPersonName, newPersonTeam);
-  
+
                 if (!newPersonCapacity || !newPersonName || !newPersonTeam) {
                   Toaster.create({ position: "bottom", maxToasts: 1 }).show({
                     message: "Missing information for person",
                     intent: "danger",
                   });
-                  
+
                   return;
                 }
-                
+
                 setPeople([
                   ...people,
                   {
@@ -155,9 +167,84 @@ const EditPage: React.FC<EditPageProps> = ({
                     capacity: newPersonCapacity,
                   },
                 ]);
+
+                newPersonTeam = undefined;
+                newPersonTeam = undefined;
+                newPersonCapacity = undefined;
               }}
             />
           )}
+        </div>
+      ))}
+      <h3>Tasks</h3>
+      {[...tasks, undefined].map((task) => (
+        <div
+          style={{ display: "flex" }}
+          key={task?._id}
+          className={styles.flex_container}
+        >
+          <FormGroup label="Name">
+            {task ? (
+              <InputGroup id="text-input" value={task.name} disabled />
+            ) : (
+              <InputGroup
+                id="text-input"
+                placeholder="New task"
+                onChange={(event) => (newTaskName = event.target.value)}
+              />
+            )}
+          </FormGroup>
+          <FormGroup label="Team">
+            <div className="bp3-select">
+              <select
+                style={{ width: 200 }}
+                disabled={!!task}
+                onChange={(event) => (newTaskName = event.target.value)}
+              >
+                {task ? (
+                  <>
+                    <option selected>{task.teamName}</option>
+                  </>
+                ) : (
+                  <>
+                    <option selected>Select team</option>
+                    {teams.map((team) => {
+                      return <option value={team.name}>{team.name}</option>;
+                    })}
+                  </>
+                )}
+              </select>
+            </div>
+          </FormGroup>
+          {jobFunctions.map((jobFunction) => {
+            return (
+              <FormGroup label={`${jobFunction} reqt.`} helperText="hours">
+                <NumericInput
+                  value={task ? task.requirement[jobFunction] : undefined}
+                  style={{ width: 80 }}
+                  disabled={!!task}
+                  min={0}
+                  defaultValue={0}
+                  onValueChange={(value) => {
+                    newTaskRequirement = {
+                      BD: newPersonCapacity?.BD || 0,
+                      DES: newPersonCapacity?.DES || 0,
+                      ENG: newPersonCapacity?.ENG || 0,
+                    };
+
+                    newPersonCapacity = {
+                      ...newPersonCapacity,
+                      [jobFunction]: value,
+                    };
+
+                    newTaskName = undefined;
+                    newTaskTeam = undefined;
+                    newTaskRequirement = undefined;
+                  }}
+                />
+              </FormGroup>
+            );
+          })}
         </div>
       ))}
     </div>
