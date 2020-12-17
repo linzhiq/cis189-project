@@ -10,15 +10,17 @@ _TASK_PRIORITY = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
 
 class TaskScheduler:
 
-    def __init__(self, all_demands, blocked_by, capacities):
+    def __init__(self, all_demands, blocked_by, capacities, priorities = None):
         self.n_resources, self.n_employees = len(capacities[0]), len(capacities)
         self.all_demands = all_demands          # all_demands[t][r] = amount of hours of r required by task t.
         self.blocked_by = blocked_by            # blocked_by[t] = a list of tasks that must be finished before t is started
         self.capacities = capacities            # capacities[i][r] = total amount of resource hours r provided by employee i
+        self.priorities = priorities if priorities else [1 for _ in range(len(all_demands))]
 
     
     def analyze_demands(self):
-        all_demands, blocked_by = self.all_demands, self.blocked_by
+        all_demands, blocked_by, priorities\
+            = self.all_demands, self.blocked_by, self.priorities
 
         # Split composite tasks into simple tasks
         orig_demands, simple_demands, new_deps = list(), list(), defaultdict(list)
@@ -34,6 +36,7 @@ class TaskScheduler:
                     simple_demands.append(resource)
                     new_deps[i].append(tail)
                     blocked_by.append([])
+                    priorities.append(0)
 
         for k in new_deps:
             for i in new_deps[k]:
