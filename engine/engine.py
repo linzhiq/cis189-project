@@ -67,11 +67,11 @@ class TaskScheduler:
         for n in range(n_tasks):
             task = tasks[n]
             # If the value is -1, it is unassigned
-            employee = model.NewIntVar(-1, n_employees, f'employee for task {n}')
+            employee = model.NewIntVar(-1, n_employees - 1, f'employee for task {n}')
             task.employee = employee
 
             # Reify is_assigned with assignment bool
-            is_assigned = model.NewBoolVar()
+            is_assigned = model.NewBoolVar(f'task {n} is assigned')
             model.Add(employee < 0).OnlyEnforceIf(is_assigned.Not())
             model.Add(employee >= 0).OnlyEnforceIf(is_assigned)
             task.is_assigned = is_assigned
