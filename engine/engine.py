@@ -177,13 +177,14 @@ class TaskScheduler:
         self.solver.parameters.num_search_workers = 4
 
         # Run model and return solution if it exists
-        if self.solver.Solve(self.model) != cp_model.INFEASIBLE:
-            return [
-                (self.solver.Value(t.start), self.solver.Value(t.end))
-                for t in self.tasks
-            ]
+        self.last_result = self.solver.Solve(self.model)
+        if self.last_result == cp_model.INFEASIBLE:
+            return 'UNSAT'
+        elif self.last_result == cp_model.MODEL_INVALID or self.last_result == cp_model.UNKNOWN:
+            return 'UNKNOWN'
         else:
-            return None
+            return 'SAT'
+
 
     def pretty_print(self):
         # Overall runtime stats
