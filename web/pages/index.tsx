@@ -8,12 +8,12 @@ import {
   Toaster,
 } from "@blueprintjs/core";
 import { GetServerSideProps } from "next";
-
 import styles from "./index.module.scss";
 
 import { MongoClient } from "mongodb";
 
 import {
+  Input,
   Job,
   jobFunctions,
   Person,
@@ -22,6 +22,8 @@ import {
   TaskPriority,
   Team,
 } from "../model";
+
+import https from "https";
 
 const url =
   "mongodb+srv://user:3HFHgEYkNgNIk462@cluster0.c6gib.mongodb.net/db?retryWrites=true&w=majority";
@@ -47,6 +49,13 @@ const EditPage: React.FC<EditPageProps> = ({
   const [newTaskBlockedByNames, setNewTaskBlockedByNames] = useState<
     string[] | undefined
   >(undefined);
+
+  const serialize = (): Input => ({
+    run: teams.map((team) => ({
+      tasks: tasks.filter((task) => task.teamName === team.name),
+      people: people.filter((person) => person.teamName === team.name),
+    })),
+  });
 
   return (
     <div style={{ paddingLeft: "10vw", width: "80vw" }}>
@@ -412,7 +421,30 @@ const EditPage: React.FC<EditPageProps> = ({
           )}
         </div>
       ))}
-      <Button text={"Schedule"} />
+      <Button
+        text={"Schedule"}
+        onClick={() => {
+          const data = JSON.stringify(serialize());
+
+          const options = {
+            path: "/api/run",
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Content-Length": data.length,
+            },
+          };
+
+          const req = https.request(options);
+
+          req.on("error", (error) => {
+            console.error(error);
+          });
+
+          req.write(data);
+          req.end();
+        }}
+      />
     </div>
   );
 };

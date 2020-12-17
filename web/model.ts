@@ -9,22 +9,21 @@ export const taskPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 export type TaskPriority = typeof taskPriorities[number];
 
 export interface Person {
+  name: string;
   capacity: Job;
 
   // UI
-  name: string;
   teamName: Team["name"];
 }
 
 export interface Task {
-  requirement: Job;
-
-  blockedByNames: Task["name"][];
-
-  priority: TaskPriority;
-
-  // UI
   name: string;
+  priority: TaskPriority;
+  
+  requirement: Job;
+  blockedByNames: Task["name"][];
+  
+  // UI
   teamName: Team["name"];
 }
 
