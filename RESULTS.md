@@ -30,4 +30,5 @@ Since in a web environment there's often limited execution time, we wanted to se
 0.5	|25|	16|	36|
 1	|25	|19|	36|
 
-Num tasks is maximized first, as expected.
+Num tasks is immediately maximized, followed by total priority. Load span (third column) doesn't change though we suspect not enough time was given to allow the solver to start optimizing it.
+
