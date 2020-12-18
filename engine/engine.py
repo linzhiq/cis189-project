@@ -120,8 +120,7 @@ class TaskScheduler:
 
 
     def precedence_constraints(self):
-        model = self.model
-        tasks = self.tasks
+        model, tasks = self.model, self.tasks
         blocked_by: [[int]] = self.blocked_by
         n_tasks = self.n_tasks
         
