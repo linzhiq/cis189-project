@@ -139,7 +139,8 @@ class TaskScheduler:
         model, tasks = self.model, self.tasks
         demands = self.demands
         capacities = self.capacities
-        n_resources, n_employees = self.n_resources, self.n_employees
+        n_resources, n_employees, n_tasks =\
+            self.n_resources, self.n_employees, self.n_tasks
 
         resource_to_tasks = defaultdict(list)
         for i, tup in enumerate(demands):
@@ -147,11 +148,13 @@ class TaskScheduler:
             resource, requirement = tup
             resource_to_tasks[resource].append((task, requirement))
 
-        employee_loads = []
+        employee_loads, emp_task_nums = [], []
         for e in range(self.n_employees):
-            employee_load = []
+            # employee_load[e][r] = current load for resource r
+            # employee_task_indicators = all task indicators for the employee
+            employee_load, employee_task_indicators = [], []
             for r in range(self.n_resources):
-                employee_tasks = []
+                employee_tasks_reqs = []
                 # Create an "indicator" variable for each task
                 for i, task_tuple in enumerate(resource_to_tasks[r]):
                     task, requirement = task_tuple
@@ -168,15 +171,22 @@ class TaskScheduler:
                     # employee_task_load is contributed iff task_assigned
                     model.Add(employee_task_load == requirement).OnlyEnforceIf(task_assigned)
                     model.Add(employee_task_load == 0).OnlyEnforceIf(task_assigned.Not())
-                    employee_tasks.append(employee_task_load)
+                    employee_task_indicators.append(task_assigned)
+                    employee_tasks_reqs.append(employee_task_load)
                 
                 employee_resource_load = model.NewIntVar(0, _MAX_TIME, f'Load of resource {r} on emp {e}')
-                model.Add(employee_resource_load == sum(employee_tasks))
+                model.Add(employee_resource_load == sum(employee_tasks_reqs))
                 model.Add(employee_resource_load <= capacities[e][r])
                 employee_load.append(employee_resource_load)
+            
             employee_loads.append(employee_load)
 
+            employee_num_tasks = model.NewIntVar(0, n_tasks, f'Number of tasks assigned to employee {e}')
+            model.Add(employee_num_tasks == sum(employee_task_indicators))
+            emp_task_nums.append(employee_num_tasks)
+
         self.employee_loads = employee_loads
+        self.employee_task_nums = emp_task_nums
 
 
     # Maximize the number of assigned tasks + employees
