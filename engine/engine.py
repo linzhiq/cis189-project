@@ -258,7 +258,7 @@ class TaskScheduler:
         print('-------------------------------')
         print(f'TOT PRIORITY: {self.solver.Value(self.total_priority)}')
         print('-------------------------------')
-        print(f'INV LOAD SPAN: {self.solver.Value(self.total_priority)}')
+        print(f'INV LOAD SPAN: {self.solver.Value(self.load_span)}')
         print('-------------------------------')
 
         for e in range(self.n_employees):
