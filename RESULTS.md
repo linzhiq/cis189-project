@@ -20,5 +20,14 @@ For the fast example, the avg time is the averaged solve time over 9 different t
 
 We believe that 3 cores perform the best because the solver was run on a testbench with 4 logical cores: 1 core was saddled with background processes while 3 other cores were free to search the search space. This is supported by the fact that the times we observed with greater than or equal to 4 workers were volatile: sometimes they were as fast as .05, sometimes they were as slow as 9 seconds. More workers than 3 have to contend with other background programs and each other for system resources. As such, the distribution of scores may vary depending on your testbench characteristics, though we expect to see similar volativity in time results as the number of workers you run approach the number of physical cores you have.
 
+### Limiting Execution Time
+Since in a web environment there's often limited execution time, we wanted to see what effect limiting the execution time would have on our various utility variables. The utility variables produced running on our slow example at various execution time limits have been tabulated below:
 
+|Time	|Num Tasks	|Total Priority	|Num_Tasks - (Max Load - Min Load)|
+|--------|----------------|------|-----|
+0.1	|25	|12|	36|
+0.25	|25	|16|	36|
+0.5	|25|	16|	36|
+1	|25	|19|	36|
 
+Num tasks is maximized first, as expected.
