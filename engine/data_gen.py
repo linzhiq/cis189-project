@@ -19,16 +19,17 @@ with open('io/input.json', 'w') as out:
             for resource in _RESOURCES:
                 requirement[resource] = random.randint(0, 15)
 
-            priority = random.choice(_RESOURCES)
+            priority = random.choice(_PRIORITIES)
             blocked_by = random.sample(
                 range(task_num), random.randint(0, task_num)
             ) if task_num > 0 else []
+            blocked_by = [str(i) for i in blocked_by]
             # Build and add task
             task = {
                 "name": str(task_num),
                 "teamName": str(team_num),
                 "priority": priority,
-                "blocked_by": blocked_by,
+                "blockedByNames": blocked_by,
                 "requirement": requirement
             }
             team_tasks.append(task)
