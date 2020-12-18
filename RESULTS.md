@@ -23,7 +23,7 @@ We believe that 3 cores perform the best because the solver was run on a testben
 ### Limiting Execution Time
 Since in a web environment there's often limited execution time, we wanted to see what effect limiting the execution time would have on our various utility variables. The utility variables produced running on our slow example at various execution time limits have been tabulated below:
 
-|Time	|Num Tasks	|Total Priority	|Num_Tasks - (Max Load - Min Load)|
+|Time	|Num Tasks	|Total Priority	|Tot_Tasks - (Max Load - Min Load)|
 |--------|----------------|------|-----|
 0.1	|25	|12|	36|
 0.25	|25	|16|	36|
