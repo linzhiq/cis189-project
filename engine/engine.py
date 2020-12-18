@@ -242,6 +242,13 @@ class TaskScheduler:
         else:
             return 'SAT'
 
+    def solve_with_benchmarks(self):
+        import timeit
+        start = timeit.default_timer()
+        ret = self.solve_model()
+        print(f'Solved in {timeit.default_timer() - start}')
+        return ret
+
 
     def pretty_print(self):
         # Overall runtime stats
@@ -363,7 +370,6 @@ if __name__ == "__main__":
             }
         scheduler = TaskScheduler(all_demands, blocked_by, capacities, priorities)
         scheduler.solve_model()
-        scheduler.pretty_print()
         return scheduler.jsonize(names, people)
 
     with open('io/input.json') as json_file:

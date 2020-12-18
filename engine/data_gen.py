@@ -9,12 +9,12 @@ _PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
 
 with open('io/input.json', 'w') as out:
     teams = []
-    for team_num in range(1000):
+    for team_num in range(10):
         team = {}
 
         # Generate tasks for each team
         team_tasks = []
-        for task_num in range(random.randint(10, 100)):
+        for task_num in range(random.randint(2, 10)):
             requirement = dict()
             for resource in _RESOURCES:
                 requirement[resource] = random.randint(0, 15)
@@ -37,7 +37,7 @@ with open('io/input.json', 'w') as out:
 
         # Generate team members
         team_members = []
-        for emp_num in range(random.randint(1, 10)):
+        for emp_num in range(random.randint(1, 5)):
             capacity = dict()
             for resource in _RESOURCES:
                 capacity[resource] = random.randint(0, 30)
