@@ -197,12 +197,23 @@ class TaskScheduler:
         model.Add(assigned_tasks == sum(t.is_assigned for t in tasks))
         self.assigned_tasks = assigned_tasks
 
-        # Alias priority utility
+        # Track number of tasks assigned to each employee
+        n_tasks, emp_task_trackers = self.n_tasks, self.employee_task_nums
+        min_emp_tasks = model.NewIntVar(0, n_tasks, 'min tasks assigned to an employee')
+        model.AddMinEquality(min_emp_tasks, emp_task_trackers)
+        max_emp_tasks = model.NewIntVar(0, n_tasks, 'max tasks assigned to an employee')
+        model.AddMaxEquality(min_emp_tasks, emp_task_trackers)
+        load_span = model.NewIntVar(0, n_tasks, f'range of loads')
+        model.Add(load_span == n_tasks - max_emp_tasks + min_emp_tasks)
+        self.load_span = load_span
+
+        # Combine tasks, priority and taskspan
         total_priority = self.total_priority
         MAX_PRIORITY = sum(self.priorities)
         P = MAX_PRIORITY + 1
+        T = n_tasks + 1
 
-        model.Maximize((assigned_tasks * P) + total_priority)
+        model.Maximize((((assigned_tasks * P) + total_priority) * T) + load_span)
 
 
     def solve_model(self) -> Optional[List[Tuple[int, int]]]:
@@ -238,7 +249,9 @@ class TaskScheduler:
         print('-------------------------------')
         print(f'NUM_TASKS: {self.solver.Value(self.assigned_tasks)}')
         print('-------------------------------')
-        print(f'PRIORITY: {self.solver.Value(self.total_priority)}')
+        print(f'TOT PRIORITY: {self.solver.Value(self.total_priority)}')
+        print('-------------------------------')
+        print(f'INV LOAD SPAN: {self.solver.Value(self.total_priority)}')
         print('-------------------------------')
 
         for e in range(self.n_employees):
