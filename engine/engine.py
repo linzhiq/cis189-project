@@ -180,9 +180,8 @@ class TaskScheduler:
         self.employee_loads = employee_loads
 
 
-    # TODO: Balance tasks across employees
     # Maximize the number of assigned tasks + employees
-    def maximize_objectives(self):
+    def create_and_maximize_objectives(self):
         model, tasks = self.model, self.tasks
         # Track number of assigned tasks
         assigned_tasks = model.NewIntVar(0, self.n_tasks, 'unassigned tasks')
@@ -208,7 +207,7 @@ class TaskScheduler:
         self.priority_constraints()
         self.precedence_constraints()
         self.capacity_constraints()
-        self.maximize_objectives()
+        self.create_and_maximize_objectives()
 
         # Set a time limit of 10 seconds and 1 logical core
         self.solver.parameters.max_time_in_seconds = 10.0
