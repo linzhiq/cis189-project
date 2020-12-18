@@ -293,7 +293,7 @@ class TaskScheduler:
                         for pred in blocked_by[i]:
                             pred, pred_demand = tasks[pred], demands[pred]
                             pred_res, _ = pred_demand
-                            people[_JOB_FUNCTION[pred_res]] = person_names[solver.Value(task.employee)]
+                            people[_JOB_FUNCTION[pred_res]] = person_names[solver.Value(pred.employee)]
                         assignment = {
                             'taskName': task_names[i],
                             'people': people
